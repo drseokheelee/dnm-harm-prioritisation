@@ -1,0 +1,8 @@
+numpy
+pandas
+scipy
+scikit-learn==1.7.2
+matplotlib
+pillow
+torch>=2.0
+torchvision>=0.15

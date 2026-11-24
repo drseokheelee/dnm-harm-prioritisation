@@ -32,15 +32,33 @@ NVIDIA RTX 3060); the other scripts run on a CPU in a few minutes.
 | Step | Script | Output |
 |---|---|---|
 | 1. Stage 1 rule-based harm scoring | `src/harm_scorer.py products.json OUT_DIR` | harmful / non-harmful / review files |
-| 2. Descriptive harm profile (RQ1) | `src/descriptive_stats.py DATA_JSON OUT_DIR` | `product_classes.csv`, `markets.csv` |
-| 3. Train/validation/test splits | `src/make_splits.py DATA_JSON splits.json` | `splits.json` (also included) |
-| 4. CNN fine-tuning and image embeddings | `src/cnn_embeddings.py DATA_JSON splits.json EMB_DIR` | `embeddings_seed{0,1,2}.npy` |
-| 5. Ridge model, ablation, robustness check | `src/ridge_evaluation.py DATA_JSON splits.json EMB_DIR results.json` | `results.json` |
-| 6. Concentration and leave-one-market-out | `src/concentration_lomo.py DATA_JSON` | `concentration_lomo_results.json` |
-| 7. Figures | `src/plot_figures.py results.json FIG_DIR` | predicted-vs-assigned plot, ablation chart |
+| 2. Stage 1 versus final scores | `src/stage_comparison.py DATA_JSON` | changed scores, product-level scoring summary |
+| 3. Descriptive harm profile and concentration (RQ1) | `src/descriptive_stats.py DATA_JSON OUT_DIR` | `product_classes.csv`, `markets.csv`, concentration shares |
+| 4. Train/validation/test splits | `src/make_splits.py DATA_JSON splits.json` | `splits.json` (also included) |
+| 5. CNN fine-tuning and image embeddings | `src/cnn_embeddings.py DATA_JSON splits.json EMB_DIR` | `embeddings_seed{0,1,2}.npy` |
+| 6. Ridge model, ablation, robustness check | `src/ridge_evaluation.py DATA_JSON splits.json EMB_DIR results.json` | `results.json` |
+| 7. Concentration and leave-one-market-out | `src/concentration_lomo.py DATA_JSON` | `concentration_lomo_results.json` |
+| 8. Figures | `src/plot_figures.py results.json FIG_DIR` | predicted-vs-assigned plot, ablation chart |
 
-Steps 4 to 6 reproduce the model results (RQ2) reported in the paper. The outputs
+Steps 5 to 7 reproduce the model results (RQ2) reported in the paper. The outputs
 reported in the paper are in `results/`.
+
+## Notes on reproducibility
+
+- **Stage 1 routing counts.** The counts of listings routed as harmful,
+  non-harmful and for review that are reported in the paper were produced by
+  running `harm_scorer.py` on the raw parsed listings, before market and
+  category names were harmonised. Running it on the final dataset gives
+  slightly different routing counts. The raw parsed listings contain market
+  URLs and vendor information and are not distributed; a version without these
+  fields can be requested together with the labelled dataset.
+- **Stage 2.** Final scores were assigned manually at the level of product
+  keywords; `stage_comparison.py` reports how they differ from Stage 1.
+- **CNN fine-tuning.** `cnn_embeddings.py` fixes all random seeds and uses
+  deterministic cuDNN settings, but GPU computations are not bit-for-bit
+  reproducible across hardware and library versions. Re-training the network
+  can change the reported metrics in the third decimal place. The ridge models
+  are deterministic given the embeddings.
 
 ## Evaluation protocol
 

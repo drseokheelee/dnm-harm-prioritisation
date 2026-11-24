@@ -42,3 +42,21 @@ mk["largest_class"] = m.groupby("market_name").apply(largest)
 mk = mk.sort_values("mean_harm")
 mk.round(3).to_csv(f"{out}/markets.csv")
 print("\nMarkets\n", mk.round(3))
+
+# Concentration across markets and product classes
+n_all, sev_all, mass_all, harm_all = len(df), df["severe"].sum(), h.sum(), df["harmful"].sum()
+two = ["Yoga", "Anonymus-gun-shop"]
+t = mk.loc[two]
+print(f"\nYoga + Anonymus-gun-shop: {100 * t['listings'].sum() / n_all:.1f}% of listings, "
+      f"{100 * t['severe'].sum() / sev_all:.1f}% of most severe listings, "
+      f"{100 * t['harm_mass'].sum() / mass_all:.1f}% of total harm score "
+      f"(Yoga {100 * mk.loc['Yoga', 'harm_mass'] / mass_all:.1f}%, "
+      f"Anonymus-gun-shop {100 * mk.loc['Anonymus-gun-shop', 'harm_mass'] / mass_all:.1f}%)")
+harmful_by_market = m.groupby("market_name")["harmful"].sum().sort_values(ascending=False)
+top3 = harmful_by_market.head(3)
+print(f"Top 3 markets by harmful listings ({', '.join(top3.index)}): "
+      f"{100 * top3.sum() / harm_all:.1f}% of harmful listings")
+dw = cls.loc[["drugs", "weapons"]]
+print(f"Drugs + weapons: {100 * dw['composite_risk'].sum() / mass_all:.1f}% of total harm score, "
+      f"{100 * dw['harmful'].sum() / harm_all:.1f}% of harmful listings")
+print("Median price by class:", p.groupby("class")["price"].median().loc[["drugs", "weapons"]].to_dict())
